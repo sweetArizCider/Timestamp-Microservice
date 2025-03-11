@@ -1,39 +1,30 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const app = express();
 
-var cors = require('cors');
+const cors = require('cors');
 app.use(cors({optionsSuccessStatus: 200}));
 
-app.use(express.static('public'));
-
-app.get("/", function (req, res) {
-  res.sendFile(__dirname + '/views/index.html');
-});
-
-
-// your first API endpoint... 
+// GET today date
+app.get("/api", (req, res)=>{
+  const date = new Date();
+  const utc = date.toUTCString()
+  const unix = date.getTime()
+  res.status(200).json({unix: unix , utc: utc});
+})
+// GET date by date and unix
 app.get("/api/:date?",(req, res) => {
   const userDate = req.params.date;
-  const date = new Date(userDate)
+  const date = isNaN(userDate) ? new Date(userDate) : new Date(parseInt(userDate));
+  const unix = date.getTime();
+  const utc = date.toUTCString();
 
-  const unix = date.valueOf();
-  const year = date.getUTCFullYear();
-  const month = date.getMonth();
-  const day = date.getUTCDate();
-  const hours = date.getHours();
-  const seconds = date.getSeconds();
-  const miliseconds = date.getMilliseconds();
-  
-  const utc = new Date(Date.UTC(year, month, day, hours, seconds, miliseconds)).toUTCString();
-
-  res.status(200).json({unix: unix , utc: utc});
-
-
+  if(utc != "Invalid Date"){
+    res.status(200).json({unix: unix , utc: utc});
+    return
+  }
+  res.status(400).json({error: "Invalid Date"});
 });
 
-
-
-// Listen on port set in environment variable or default to 3000
-var listener = app.listen(process.env.PORT || 3000, function () {
+const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port);
 });
